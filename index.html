@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<title>Nteria</title>
+
+	<style>
+	.btn {
+		background-color: orange;
+		border: none;
+		color: white;
+		padding: 20px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 16px;
+		margin: 4px 2px;
+		height: 60px;
+		width: 60px;
+		cursor: pointer;
+		transition-duration: 0.4s;
+		border-radius: 8px;
+	}
+	.btn:hover {
+		background-color: yellow;
+		color: white;
+	}
+	.btn:active {
+		background-color: yellow;
+		box-shadow: -2px -2px gray;
+		transform: translate(2px,2px);
+	}
+	.btn_cancel {
+		background-color: red;
+		padding: 0px;
+		width: 280px;
+		height: 20px;
+	}
+	.btn_bet {
+		background-color: green;
+		width: 280px;
+	}
+	.btn_info {
+		background-color: blue;
+		padding: 0px;
+		width: 280px;
+		height: 20px;
+	}
+	div.fixed_len {
+		font-family: monospace;
+		max-width:280px;
+	}
+	</style>
+
+
+    <script type="text/javascript" src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+
+    <script type="text/javascript">
+		var abi =  JSON.parse('[{"anonymous": false,"inputs": [{"indexed": false,"internalType": "string","name": "","type": "string"}],"name": "RevealKey","type": "event"},{"anonymous": false,"inputs": [{"indexed": false,"internalType": "uint256","name": "","type": "uint256"}],"name": "VotingClosed","type": "event"},{"inputs": [],"name": "add_funds","outputs": [],"stateMutability": "payable","type": "function"},{"inputs": [],"name": "cancel_vote","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"name": "close_voting","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"name": "destroy_contract","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "_decision","type": "string"}],"name": "make_vote","outputs": [],"stateMutability": "payable","type": "function"},{"inputs": [{"internalType": "bytes32","name": "_private_key_hashed","type": "bytes32"}],"name": "open_voting","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "_private_key","type": "string"}],"name": "reveal_key_and_pay","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"name": "withdraw_funds","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"stateMutability": "nonpayable","type": "constructor"},{"inputs": [],"name": "get_number_votes","outputs": [{"internalType": "uint256","name": "_val","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "get_voting_balance","outputs": [{"internalType": "uint256","name": "_val","type": "uint256"}],"stateMutability": "view","type": "function"}]');
+		var address = "0xDd6a07B2C2Df575367845c70C7939c2e955f4246";
+		var contract = "";
+		var account = "";
+		var hashed_number = "";
+		var socket = io.connect();
+		
+		socket.on('hash', function(msg){hashed_number = msg;});
+		
+		window.addEventListener('load', async () => {
+			if (window.ethereum) {
+				ethereum.autoRefreshOnNetworkChange = false;
+				window.web3 = new Web3(ethereum);
+				try {
+					await ethereum.enable();
+				} catch (err) {
+					$('#status').html('User denied account access', err)
+				}
+			} else if (window.web3) {
+				window.web3 = new Web3(web3.currentProvider)
+			} else {
+				$('#status').html('No Metamask (or other Web3 Provider) installed')
+			}
+			contract = new web3.eth.Contract(abi,address);
+			account = web3.currentProvider.selectedAddress;
+		})
+
+		function b0(){socket.emit('num', '0');$('#chosen_number').html('0')}
+        function b1(){socket.emit('num', '1');$('#chosen_number').html('1')}
+        function b2(){socket.emit('num', '2');$('#chosen_number').html('2')}
+        function b3(){socket.emit('num', '3');$('#chosen_number').html('3')}
+        function b4(){socket.emit('num', '4');$('#chosen_number').html('4')}
+        function b5(){socket.emit('num', '5');$('#chosen_number').html('5')}
+        function b6(){socket.emit('num', '6');$('#chosen_number').html('6')}
+        function b7(){socket.emit('num', '7');$('#chosen_number').html('7')}
+        function b8(){socket.emit('num', '8');$('#chosen_number').html('8')}
+        function b9(){socket.emit('num', '9');$('#chosen_number').html('9')}
+        function ba(){socket.emit('num', 'a');$('#chosen_number').html('10')}
+        function bb(){socket.emit('num', 'b');$('#chosen_number').html('11')}
+        function bc(){socket.emit('num', 'c');$('#chosen_number').html('12')}
+        function bd(){socket.emit('num', 'd');$('#chosen_number').html('13')}
+        function be(){socket.emit('num', 'e');$('#chosen_number').html('14')}
+        function bf(){socket.emit('num', 'f');$('#chosen_number').html('15')}
+        
+        function information(){
+			try {
+				contract.methods.get_voting_balance().call({from: account,to: address,gas: 300000}).then(function(res){
+					console.log(res);
+					$('#balance').html(web3.utils.fromWei(res,'ether')) 
+				});
+			} catch (err) {
+				console.log(err);
+			}
+			try {
+				contract.methods.get_number_votes().call({from: account,to: address,gas: 300000}).then(function(res){
+					console.log(res);
+					$('#people').html(res)
+				});
+			} catch (err) {
+				console.log(err);
+			}
+
+		}
+ 		function cancel_vote(){
+			try {
+				contract.methods.cancel_vote().send({from: account,to: address,gas: 300000}).then(function(res){
+					console.log(res);
+					$('#status').html('Votes canceled');
+				});
+			} catch (err) {
+				console.log(err);
+			}
+		}
+		function bet(){
+			try {
+				contract.methods.make_vote(hashed_number).send({
+					from: account,
+					to: address,
+					value: web3.utils.toWei($('#amount').val(),'ether'),
+					gas: 300000
+				}).then(function(res){
+					console.log(res);
+					$('#status').html('Done')
+				});
+			} catch (err) {
+				console.log(err);
+			}
+		}
+    </script>
+  </head>
+  <body>
+    <div>
+		<button onclick="b0()" class="btn">0</button>
+		<button onclick="b1()" class="btn">1</button>
+		<button onclick="b2()" class="btn">2</button>
+		<button onclick="b3()" class="btn">3</button>
+	</div>
+	<div>
+		<button onclick="b4()" class="btn">4</button>
+		<button onclick="b5()" class="btn">5</button>
+		<button onclick="b6()" class="btn">6</button>
+		<button onclick="b7()" class="btn">7</button>
+	</div>
+	<div>
+		<button onclick="b8()" class="btn">8</button>
+		<button onclick="b9()" class="btn">9</button>
+		<button onclick="ba()" class="btn">10</button>
+		<button onclick="bb()" class="btn">11</button>
+	</div>
+	<div>
+		<button onclick="bc()" class="btn">12</button>
+		<button onclick="bd()" class="btn">13</button>
+		<button onclick="be()" class="btn">14</button>
+		<button onclick="bf()" class="btn">15</button>
+    </div>
+    
+    <pre>Eth to bet: <input id="amount" type="text" size="18"> </pre>
+    <pre>Chosen number: <span id="chosen_number"></span></pre>
+    <div><button onclick="bet()" class="btn btn_bet">Bet</button></div>
+	<div><button onclick="cancel_vote()" class="btn btn_cancel">Cancel my bets</button></div>
+    <p><span id="status"></span></p>
+    <p></p>
+    <div><button onclick="information()" class="btn btn_info">Get voting state</button></div>
+    
+    <div class="fixed_len">
+    Total amount of Eth in this voting: <span id="balance">?</span><br>
+    Current number of votes: <span id="people">?</span><br>
+    ---------------------------------------<br>
+	<em>How does it works?</em><br>
+    Each participant bets for a number.
+    At the end of the voting process, the number that raised the most money loses.
+    All that money goes to the other participants in equal shares.<br>
+    ---------------------------------------<br>
+    <em>About the security.</em><br>
+	At the beginning of the voting process, the administrator uploads a hashed secret key, hash( S ), to the smart contract.
+	A voter chooses a number N and instead of uploading this number, the voter uploads a random string R defined in such a way that <br>
+	<br><center><strong>hash( S + R ) & 0xf == N</strong>,</center><br>
+	where S is the secret key known to the administrator.
+	At the end of the voting process, the administrator uploads the secret key and if its hash is equal 
+	to the initial hashed key, then the voting is closed. The smart contract looks for 
+	the number who raised the most amount of money and this number is the number that loses. 
+	The money raised by the losing number is divided equally between the 
+	other participants who also receive their initial bet.
+	The advantage of this method is that no one knows the state of the voting and more importantly, than the smart contract 
+	can manage the result of the voting.<br>
+    ---------------------------------------<br>
+    <em>About the contract.</em><br>
+    Contract Address: <a href=https://etherscan.io/address/0xDd6a07B2C2Df575367845c70C7939c2e955f4246>0xDd6a07B2C2Df575367845c70C7939c2e955f4246</a><br>
+    Suggestions and comments: cesarmassri at gmail dot com<br>
+	---------------------------------------<br>
+    </div>
+  </body>
+</html>
